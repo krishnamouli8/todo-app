@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,6 +18,7 @@ import (
 type Todo struct {
 	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Completed bool               `json:"completed"`
+	Important bool               `json:"important"`
 	Body      string             `json:"body"`
 }
 
@@ -53,9 +55,15 @@ func main() {
 
 	app := fiber.New()
 
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:5173",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+
 	app.Get("/api/todos", getTodos)
 	app.Post("/api/todos", createTodo)
 	app.Patch("/api/todos/:id", updateTodo)
+	app.Patch("/api/todos/:id/important", toggleImportant)
 	app.Delete("/api/todos/:id", deleteTodo)
 
 	PORT := os.Getenv("PORT")
@@ -118,7 +126,7 @@ func updateTodo(c *fiber.Ctx) error {
 	}
 
 	filter := bson.M{"_id": objectID}
-	update := bson.M{"$set":bson.M{"completed":true}}
+	update := bson.M{"$set": bson.M{"completed": true}}
 
 	_, err = collection.UpdateOne(context.Background(), filter, update)
 
@@ -127,6 +135,35 @@ func updateTodo(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"message": "Todo updated successfully"})
+}
+
+func toggleImportant(c *fiber.Ctx) error {
+    id := c.Params("id")
+    objectID, err := primitive.ObjectIDFromHex(id)
+
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "Invalid ID"})
+    }
+
+    type UpdateRequest struct {
+        Important bool `json:"important"`
+    }
+
+    var req UpdateRequest
+    if err := c.BodyParser(&req); err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
+    }
+
+    filter := bson.M{"_id": objectID}
+    update := bson.M{"$set": bson.M{"important": req.Important}}
+
+    _, err = collection.UpdateOne(context.Background(), filter, update)
+
+    if err != nil {
+        return err
+    }
+
+    return c.JSON(fiber.Map{"message": "Todo importance updated successfully"})
 }
 
 func deleteTodo(c *fiber.Ctx) error {
