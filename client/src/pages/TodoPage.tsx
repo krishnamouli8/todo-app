@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { todoApi } from "../api/todoApi";
 import TodoItem from "../components/TodoItem";
 import Todo from "../models/Todo";
-import Navbar from "../components/Navbar";
 import CreateTaskModal from "../components/CreateTaskModal";
 import TaskTabs from "../components/TaskTabs";
+import { Menu, X } from "lucide-react";
+import Sidebar from "../components/Sidebar";
 
 export default function TodoPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -14,6 +15,7 @@ export default function TodoPage() {
     "general"
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchTodos();
@@ -80,9 +82,28 @@ export default function TodoPage() {
 
   return (
     <div className="min-h-screen bg-[#1a1c1e] text-white">
-      <Navbar />
+      {/* Menu Button */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="fixed top-4 left-4 z-40 p-3 bg-violet-600 rounded-full hover:bg-violet-700 transition-colors"
+      >
+        {isSidebarOpen ? (
+          <X className="w-6 h-6 text-white" />
+        ) : (
+          <Menu className="w-6 h-6 text-white" />
+        )}
+      </button>
+
+      {/* Sidebar */}
+      <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(false)} />
 
       <main className="p-4">
+        {/* Enhanced Centered Title */}
+        <h1 className="text-6xl font-bold text-center mb-16 mt-8">
+          <span className="text-violet-400">User's</span>
+          <span className="ml-3">Todo List</span>
+        </h1>
+
         <div className="max-w-2xl mx-auto">
           {error && (
             <div className="bg-red-900/50 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl mb-4">
