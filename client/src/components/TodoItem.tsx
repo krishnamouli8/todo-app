@@ -53,7 +53,7 @@ const TodoItem = ({ todo, onToggle, onToggleImportant, onDelete }: TodoItemProps
   );
 
   return (
-    <div className="group flex items-center gap-4 bg-white/5 backdrop-blur-lg p-4 rounded-xl hover:bg-white/10 transition-colors">
+    <div className="group flex items-center gap-4 bg-white/5 backdrop-blur-lg p-4 rounded-xl hover:bg-white/10 transition-colors w-[calc(100%+8rem)] -ml-16"> {/* Added width and negative margin */}
       <button
         onClick={() => todo._id && onToggle(todo._id, todo.completed)}
         className={`w-5 h-5 flex items-center justify-center rounded-md transition-colors ${
@@ -76,8 +76,8 @@ const TodoItem = ({ todo, onToggle, onToggleImportant, onDelete }: TodoItemProps
           onClick={() => todo._id && onToggleImportant(todo._id, todo.important)}
           className={`p-1.5 rounded-lg transition-all duration-200 ${
             todo.important 
-              ? 'text-[#F7B731]' // Always yellow for important tasks
-              : 'text-gray-400 hover:text-[#F7B731]' // Gray by default, yellow on hover for general tasks
+              ? 'text-[#F7B731]'
+              : 'text-gray-400 hover:text-[#F7B731]'
           }`}
         >
           {todo.important ? <StarFilledIcon /> : <Star className="w-5 h-5" />}
