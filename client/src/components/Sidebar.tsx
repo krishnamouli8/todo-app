@@ -1,5 +1,6 @@
 import { List, LogOut, Settings, User } from "lucide-react";
 import SidebarProps from "../models/SidebarProps";
+import ProfilePhoto from "../images/profile_photo.jpeg";
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   return (
@@ -21,7 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           <div className="flex flex-col items-center mb-8 mt-4">
             <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-white/20">
               <img
-                src="/api/placeholder/96/96"
+                src={ProfilePhoto}
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
@@ -75,4 +76,3 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 };
 
 export default Sidebar;
-
