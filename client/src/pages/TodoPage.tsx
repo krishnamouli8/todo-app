@@ -6,7 +6,6 @@ import CreateTaskModal from "../components/CreateTaskModal";
 import TaskTabs from "../components/TaskTabs";
 import { Menu, X } from "lucide-react";
 import Sidebar from "../components/Sidebar";
-import Footer from "../components/Footer";
 
 export default function TodoPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -149,7 +148,6 @@ export default function TodoPage() {
           }
         }}
       />
-      <Footer />
     </div>
   );
 }
