@@ -1,0 +1,155 @@
+// import { X } from "lucide-react";
+// import { useState } from "react";
+
+// type CreateTaskModalProps = {
+//   isOpen: boolean;
+//   onClose: () => void;
+//   onSubmit: (task: string) => void;
+// };
+
+// const CreateTaskModal = ({ isOpen, onClose, onSubmit }: CreateTaskModalProps) => {
+//   const [task, setTask] = useState("");
+
+//   if (!isOpen) return null;
+
+//   return (
+//     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+//       <div className="bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl w-full max-w-md">
+//         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/20">
+//           <h2 className="text-base sm:text-lg font-semibold text-white">Add New Task</h2>
+//           <button
+//             onClick={onClose}
+//             className="p-1 hover:bg-white/10 rounded-full transition-colors"
+//           >
+//             <X className="w-5 h-5 text-white" />
+//           </button>
+//         </div>
+//         <form onSubmit={(e) => {
+//           e.preventDefault();
+//           if (task.trim()) {
+//             onSubmit(task);
+//             setTask("");
+//             onClose();
+//           }
+//         }} className="p-3 sm:p-4">
+//           <input
+//             type="text"
+//             value={task}
+//             onChange={(e) => setTask(e.target.value)}
+//             placeholder="Enter your task..."
+//             className="w-full px-3 sm:px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 mb-4 text-white placeholder-gray-300"
+//             autoFocus
+//           />
+//           <div className="flex justify-end gap-2 sm:gap-3">
+//             <button
+//               type="button"
+//               onClick={onClose}
+//               className="px-3 sm:px-4 py-2 text-sm sm:text-base text-white hover:bg-white/10 rounded-lg transition-colors"
+//             >
+//               Cancel
+//             </button>
+//             <button
+//               type="submit"
+//               className="px-3 sm:px-4 py-2 text-sm sm:text-base bg-blue-500/80 hover:bg-blue-600/80 text-white rounded-lg transition-colors"
+//             >
+//               Add Task
+//             </button>
+//           </div>
+//         </form>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default CreateTaskModal;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { X } from "lucide-react";
+import { useState } from "react";
+
+type CreateTaskModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (task: string) => void;
+};
+
+const CreateTaskModal = ({ isOpen, onClose, onSubmit }: CreateTaskModalProps) => {
+  const [task, setTask] = useState("");
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-[#2a2d30] rounded-xl w-full max-w-md">
+        <div className="flex items-center justify-between p-4 border-b border-white/10">
+          <h2 className="text-lg font-semibold text-white">Add New Task</h2>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (task.trim()) {
+              onSubmit(task);
+              setTask("");
+              onClose();
+            }
+          }}
+          className="p-4"
+        >
+          <input
+            type="text"
+            value={task}
+            onChange={(e) => setTask(e.target.value)}
+            placeholder="Enter your task..."
+            className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/50 mb-4 text-white placeholder-gray-400"
+            autoFocus
+          />
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2.5 text-sm bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
+            >
+              Add Task
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default CreateTaskModal;
