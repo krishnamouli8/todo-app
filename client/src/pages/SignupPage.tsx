@@ -1,4 +1,3 @@
-// SignupPage.tsx
 import { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 
@@ -7,8 +6,18 @@ const SignupPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
-    <div className="min-h-screen flex bg-[#1a1c1e]">
-      {/* Left Animation Section */}
+    <div className="min-h-screen relative flex bg-[#1a1c1e]">
+      {/* Mobile Animation Background */}
+      <div className="lg:hidden absolute inset-0 overflow-hidden bg-[#2a2d30]/50">
+        <div className="absolute w-full h-full">
+          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-purple-500/20 rounded-full animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-28 h-28 bg-blue-500/20 rounded-full animate-pulse delay-300" />
+          <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-pink-500/20 rounded-full animate-pulse delay-700" />
+        </div>
+        <div className="absolute inset-0 backdrop-blur-md bg-[#1a1c1e]/40" />
+      </div>
+
+      {/* Left Animation Section - Desktop Only */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-[#2a2d30] items-center justify-center overflow-hidden">
         <div className="relative w-full h-full">
           {/* Animated circles in the background */}
@@ -29,7 +38,7 @@ const SignupPage = () => {
       </div>
 
       {/* Right Form Section */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="relative w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>

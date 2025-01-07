@@ -1,13 +1,14 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import TodoPage from "./pages/TodoPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import LandingPage from "./pages/LandingPage";
 import Custom404Page from "./pages/Custom404Page";
+import { HashRouter } from 'react-router-dom'
 
 export default function App() {
   return (
-    <Router>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/todos" element={<TodoPage />} />
@@ -15,6 +16,6 @@ export default function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="*" element={<Custom404Page />} />
       </Routes>
-    </Router>
+    </HashRouter>
   );
 }
