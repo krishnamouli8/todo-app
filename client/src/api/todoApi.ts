@@ -1,7 +1,7 @@
 import Todo from "../models/Todo";
 
-// const API_BASE_URL = 'https://task-master-x4xs.onrender.com/api';
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://task-master-x4xs.onrender.com/api';
+// const API_BASE_URL = 'http://localhost:5000/api';
 
 export const todoApi = {
   async getTodos(): Promise<Todo[]> {
