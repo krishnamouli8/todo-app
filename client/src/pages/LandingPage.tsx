@@ -208,7 +208,7 @@ export default function LandingPage() {
             </p>
             <div className="flex justify-center md:justify-start">
               <Link
-                to="/signup"
+                to="/todos"
                 className="inline-block px-6 sm:px-8 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm sm:text-base"
               >
                 Get Started - It's Free
