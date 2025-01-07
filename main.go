@@ -57,7 +57,6 @@ func main() {
 
 	app.Use(cors.New(cors.Config{
 		// AllowOrigins: "http://localhost:5173",
-		// AllowOrigins: "http://192.168.1.8:5173",
 		AllowOrigins: "https://taskmasterrr.vercel.app/",
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))

@@ -12,8 +12,7 @@
 //   // Custom star icon for filled state
 //   const StarFilledIcon = () => (
 //     <svg 
-//       width="20" 
-//       height="20" 
+//       className="w-4 h-4 sm:w-5 sm:h-5"
 //       viewBox="0 0 24 24" 
 //       fill="currentColor"
 //       xmlns="http://www.w3.org/2000/svg"
@@ -25,8 +24,7 @@
 //   // Custom trash icon for outline and filled states
 //   const TrashOutlineIcon = () => (
 //     <svg 
-//       width="20" 
-//       height="20" 
+//       className="w-4 h-4 sm:w-5 sm:h-5"
 //       viewBox="0 0 24 24" 
 //       fill="none" 
 //       stroke="currentColor" 
@@ -42,8 +40,7 @@
 
 //   const TrashFilledIcon = () => (
 //     <svg 
-//       width="20" 
-//       height="20" 
+//       className="w-4 h-4 sm:w-5 sm:h-5"
 //       viewBox="0 0 24 24" 
 //       fill="currentColor"
 //       xmlns="http://www.w3.org/2000/svg"
@@ -53,38 +50,40 @@
 //   );
 
 //   return (
-//     <div className="group flex items-center gap-4 bg-white/5 backdrop-blur-lg p-4 rounded-xl hover:bg-white/10 transition-colors w-[calc(100%+8rem)] -ml-16"> {/* Added width and negative margin */}
+//     <div className="group flex items-center gap-2 sm:gap-4 bg-white/5 backdrop-blur-lg p-2 sm:p-4 rounded-xl hover:bg-white/10 transition-colors">
 //       <button
 //         onClick={() => todo._id && onToggle(todo._id, todo.completed)}
-//         className={`w-5 h-5 flex items-center justify-center rounded-md transition-colors ${
+//         className={`w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-md transition-colors ${
 //           todo.completed
 //             ? 'bg-green-500'
 //             : 'border border-gray-600 hover:border-gray-400'
 //         }`}
 //       >
-//         {todo.completed && <Check className="w-4 h-4 text-white" />}
+//         {todo.completed && <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />}
 //       </button>
       
 //       <div className="flex-1 min-w-0">
-//         <p className={`text-sm ${todo.completed ? 'line-through text-gray-500' : 'text-gray-200'}`}>
+//         <p className={`text-xs sm:text-sm ${
+//           todo.completed ? 'line-through text-gray-500' : 'text-gray-200'
+//         }`}>
 //           {todo.body}
 //         </p>
 //       </div>
 
-//       <div className="flex items-center gap-3">
+//       <div className="flex items-center gap-1 sm:gap-3">
 //         <button
 //           onClick={() => todo._id && onToggleImportant(todo._id, todo.important)}
-//           className={`p-1.5 rounded-lg transition-all duration-200 ${
+//           className={`p-1 sm:p-1.5 rounded-lg transition-all duration-200 ${
 //             todo.important 
 //               ? 'text-[#F7B731]'
 //               : 'text-gray-400 hover:text-[#F7B731]'
 //           }`}
 //         >
-//           {todo.important ? <StarFilledIcon /> : <Star className="w-5 h-5" />}
+//           {todo.important ? <StarFilledIcon /> : <Star className="w-4 h-4 sm:w-5 sm:h-5" />}
 //         </button>
 //         <button
 //           onClick={() => todo._id && onDelete(todo._id)}
-//           className="p-1.5 rounded-lg text-[#FF6B6B] hover:bg-white/5 transition-all duration-200 group/delete"
+//           className="p-1 sm:p-1.5 rounded-lg text-[#FF6B6B] hover:bg-white/5 transition-all duration-200 group/delete"
 //         >
 //           <div className="block group-hover/delete:hidden">
 //             <TrashOutlineIcon />
@@ -99,9 +98,6 @@
 // };
 
 // export default TodoItem;
-
-
-
 
 
 
@@ -171,7 +167,7 @@ const TodoItem = ({ todo, onToggle, onToggleImportant, onDelete }: TodoItemProps
   );
 
   return (
-    <div className="group flex items-center gap-2 sm:gap-4 bg-white/5 backdrop-blur-lg p-2 sm:p-4 rounded-xl hover:bg-white/10 transition-colors">
+    <div className="group flex items-center gap-2 sm:gap-4 bg-gray-800/90 sm:bg-white/5 backdrop-blur-lg p-2 sm:p-4 rounded-xl hover:bg-white/10 transition-colors w-[calc(100%+1rem)] -ml-2 sm:w-full sm:ml-0">
       <button
         onClick={() => todo._id && onToggle(todo._id, todo.completed)}
         className={`w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-md transition-colors ${
