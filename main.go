@@ -9,6 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
+	"github.com/krishnamouli8/todo-app/handlers"
+	"github.com/krishnamouli8/todo-app/middleware"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,10 +24,10 @@ type Todo struct {
 	Body      string             `json:"body"`
 }
 
-var collection *mongo.Collection
+var todoCollection *mongo.Collection
 
 func main() {
-	fmt.Println("Hello World!!")
+	fmt.Println("Starting Todo App...")
 
 	err := godotenv.Load()
 	if err != nil {
@@ -38,7 +40,7 @@ func main() {
 	client, err := mongo.Connect(context.Background(), clientoptions)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to connect to MongoDB: ", err)
 	}
 
 	defer client.Disconnect(context.Background())
@@ -51,21 +53,37 @@ func main() {
 
 	fmt.Println("Connected to MongoDB")
 
-	collection = client.Database("todos").Collection("todos")
+	database := client.Database("todos")
+
+	userCollection := database.Collection("users")
+	todoCollection = database.Collection("todos")
+
+	handlers.InitAuthHandlers(userCollection)
+	handlers.InitTodoHandlers(todoCollection)
 
 	app := fiber.New()
 
 	app.Use(cors.New(cors.Config{
 		// AllowOrigins: "http://localhost:5173",
 		AllowOrigins: "https://taskmasterrr.vercel.app/",
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
+
+	// Authentication routes
+	app.Post("/api/signup", handlers.Signup)
+	app.Post("/api/login", handlers.Login)
+	
+	// Protected routes
+	app.Use("/api/todos", middleware.JWTMiddleware())
 
 	app.Get("/api/todos", getTodos)
 	app.Post("/api/todos", createTodo)
 	app.Patch("/api/todos/:id", updateTodo)
 	app.Patch("/api/todos/:id/important", toggleImportant)
 	app.Delete("/api/todos/:id", deleteTodo)
+
+	// Logout route
+	app.Post("/api/logout", handlers.Logout)
 
 	PORT := os.Getenv("PORT")
 	if PORT == "" {
@@ -77,7 +95,7 @@ func main() {
 
 func getTodos(c *fiber.Ctx) error {
 	var todos []Todo
-	cursor, err := collection.Find(context.Background(), bson.M{})
+	cursor, err := todoCollection.Find(context.Background(), bson.M{})
 
 	if err != nil {
 		return err
@@ -108,7 +126,7 @@ func createTodo(c *fiber.Ctx) error {
 		return c.Status(400).SendString("Body is required")
 	}
 
-	insertResult, err := collection.InsertOne(context.Background(), todo)
+	insertResult, err := todoCollection.InsertOne(context.Background(), todo)
 	if err != nil {
 		return err
 	}
@@ -129,7 +147,7 @@ func updateTodo(c *fiber.Ctx) error {
 	filter := bson.M{"_id": objectID}
 	update := bson.M{"$set": bson.M{"completed": true}}
 
-	_, err = collection.UpdateOne(context.Background(), filter, update)
+	_, err = todoCollection.UpdateOne(context.Background(), filter, update)
 
 	if err != nil {
 		return err
@@ -158,7 +176,7 @@ func toggleImportant(c *fiber.Ctx) error {
     filter := bson.M{"_id": objectID}
     update := bson.M{"$set": bson.M{"important": req.Important}}
 
-    _, err = collection.UpdateOne(context.Background(), filter, update)
+    _, err = todoCollection.UpdateOne(context.Background(), filter, update)
 
     if err != nil {
         return err
@@ -177,7 +195,7 @@ func deleteTodo(c *fiber.Ctx) error {
 
 	filter := bson.M{"_id": objectID}
 
-	_, err = collection.DeleteOne(context.Background(), filter)
+	_, err = todoCollection.DeleteOne(context.Background(), filter)
 
 	if err != nil {
 		return err

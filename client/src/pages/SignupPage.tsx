@@ -1,9 +1,41 @@
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { todoApi } from '../api/todoApi';
+import { useNavigate } from 'react-router-dom';
 
 const SignupPage = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError('');
+
+    // Basic validation
+    if (!name || !email || !password || !confirmPassword) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    try {
+      await todoApi.signup(name, email, password);
+      // Redirect to dashboard or todos page after successful signup
+      navigate('/todos');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Signup failed');
+    }
+  };
 
   return (
     <div className="min-h-screen relative flex bg-[#1a1c1e]">
@@ -45,7 +77,7 @@ const SignupPage = () => {
             <p className="text-gray-400">Start your journey with us today</p>
           </div>
 
-          <form className="space-y-6">
+          {/* <form className="space-y-6">
             <div className="space-y-4">
               <div>
                 <label htmlFor="name" className="text-sm text-gray-300 mb-1 block">Full Name</label>
@@ -127,7 +159,108 @@ const SignupPage = () => {
                 Login here
               </a>
             </p>
-          </form>
+          </form> */}
+
+<form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="bg-red-500/20 border border-red-500/30 text-red-300 p-3 rounded-lg text-center">
+            {error}
+          </div>
+        )}
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="name" className="text-sm text-gray-300 mb-1 block">Full Name</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 text-white px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/50 placeholder-gray-500"
+                placeholder="John Doe"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="email" className="text-sm text-gray-300 mb-1 block">Email Address</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 text-white px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/50 placeholder-gray-500"
+                placeholder="johndoe@example.com"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="password" className="text-sm text-gray-300 mb-1 block">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 text-white px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/50 placeholder-gray-500"
+                placeholder="••••••••"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="confirmPassword" className="text-sm text-gray-300 mb-1 block">Confirm Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 text-white px-10 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/50 placeholder-gray-500"
+                placeholder="••••••••"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg transition-colors font-medium"
+        >
+          Create Account
+        </button>
+
+        <p className="text-center text-gray-400">
+          Already have an account?{' '}
+          <a href="/login" className="text-purple-400 hover:text-purple-300">
+            Login here
+          </a>
+        </p>
+      </form>
         </div>
       </div>
     </div>
