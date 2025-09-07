@@ -45,7 +45,7 @@
 //               to="/signup"
 //               className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
 //             >
-//               Sign Up
+//               Get Started
 //             </Link>
 //           </div>
 //         </nav>
@@ -142,9 +142,34 @@
 
 
 import { BarChart, Sparkles, Target } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { todoApi } from "../api/todoApi";
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check authentication status when component mounts
+    const checkAuth = () => {
+      const authenticated = todoApi.isAuthenticated();
+      setIsAuthenticated(authenticated);
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleGetStarted = () => {
+    if (isAuthenticated) {
+      navigate('/todos');
+    } else {
+      navigate('/signup');
+    }
+  };
+
   const features = [
     {
       title: "Simple & Intuitive",
@@ -163,6 +188,14 @@ export default function LandingPage() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-[#1a1c1e]">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div 
       className="min-h-screen bg-[#1a1c1e] text-white relative overflow-x-hidden"
@@ -177,18 +210,37 @@ export default function LandingPage() {
             TaskMaster
           </div>
           <div className="flex space-x-4">
-            <Link
-              to="/login"
-              className="px-3 sm:px-4 py-2 text-gray-300 hover:text-purple-400 transition-colors text-sm sm:text-base"
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="px-3 sm:px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm sm:text-base"
-            >
-              Sign Up
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <button
+                  onClick={() => navigate('/todos')}
+                  className="px-3 sm:px-4 py-2 text-gray-300 hover:text-purple-400 transition-colors text-sm sm:text-base"
+                >
+                  My Todos
+                </button>
+                <button
+                  onClick={() => todoApi.logout()}
+                  className="px-3 sm:px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm sm:text-base"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="px-3 sm:px-4 py-2 text-gray-300 hover:text-purple-400 transition-colors text-sm sm:text-base"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="px-3 sm:px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm sm:text-base"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
@@ -207,12 +259,12 @@ export default function LandingPage() {
               interface.
             </p>
             <div className="flex justify-center md:justify-start">
-              <Link
-                to="/todos"
+              <button
+                onClick={handleGetStarted}
                 className="inline-block px-6 sm:px-8 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm sm:text-base"
               >
-                Get Started - It's Free
-              </Link>
+                {isAuthenticated ? 'Go to My Todos' : 'Get Started - It\'s Free'}
+              </button>
             </div>
           </div>
           
@@ -220,13 +272,29 @@ export default function LandingPage() {
           <div className="hidden md:block">
             <div className="bg-[#2a2d30] p-4 sm:p-6 rounded-2xl border border-white/10">
               <div className="space-y-3 sm:space-y-4">
-                {[1, 2, 3].map((item) => (
+                {[
+                  { completed: true, text: 'Design new landing page' },
+                  { completed: false, text: 'Review user feedback' },
+                  { completed: false, text: 'Plan next sprint' }
+                ].map((item, index) => (
                   <div
-                    key={item}
+                    key={index}
                     className="flex items-center p-3 sm:p-4 bg-white/5 rounded-lg border border-white/10"
                   >
-                    <div className="h-3 w-3 sm:h-4 sm:w-4 rounded border-2 border-purple-500 mr-3 sm:mr-4" />
-                    <div className="h-3 sm:h-4 bg-white/10 rounded w-3/4" />
+                    <div className={`h-3 w-3 sm:h-4 sm:w-4 rounded border-2 mr-3 sm:mr-4 ${
+                      item.completed ? 'bg-purple-500 border-purple-500' : 'border-purple-500'
+                    }`}>
+                      {item.completed && (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        </div>
+                      )}
+                    </div>
+                    <div className={`text-sm flex-1 ${
+                      item.completed ? 'line-through text-gray-500' : 'text-gray-200'
+                    }`}>
+                      {item.text}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -256,6 +324,23 @@ export default function LandingPage() {
               </p>
             </div>
           ))}
+        </div>
+
+        {/* Call to Action Section */}
+        <div className="mt-16 sm:mt-24 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+            Ready to get organized?
+          </h2>
+          <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
+            Join thousands of users who have transformed their productivity with TaskMaster.
+            Start your journey today - completely free!
+          </p>
+          <button
+            onClick={handleGetStarted}
+            className="px-8 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-lg font-medium"
+          >
+            {isAuthenticated ? 'Access My Dashboard' : 'Start Free Today'}
+          </button>
         </div>
       </div>
     </div>
