@@ -1,59 +1,74 @@
-import { X } from "lucide-react";
 import { useState } from "react";
+import { X } from "lucide-react";
 
-type CreateTaskModalProps = {
+interface CreateTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (task: string) => void;
-};
+  onSubmit: (task: string, makeImportant?: boolean) => void;
+  defaultImportant?: boolean;
+}
 
-const CreateTaskModal = ({ isOpen, onClose, onSubmit }: CreateTaskModalProps) => {
+const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  defaultImportant = false,
+}) => {
   const [task, setTask] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (task.trim()) {
+      onSubmit(task.trim(), defaultImportant);
+      setTask("");
+      onClose();
+    }
+  };
+
+  const handleClose = () => {
+    setTask("");
+    onClose();
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-[#2a2d30] rounded-xl w-full max-w-md">
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-lg font-semibold text-white">Add New Task</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-[#2a2d30] rounded-2xl p-6 w-full max-w-md border border-white/10">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-white">
+            Add {defaultImportant ? 'Important' : 'New'} Task
+          </h2>
           <button
-            onClick={onClose}
-            className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+            onClick={handleClose}
+            className="text-gray-400 hover:text-white transition-colors"
           >
-            <X className="w-5 h-5 text-gray-400" />
+            <X className="w-5 h-5" />
           </button>
         </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (task.trim()) {
-              onSubmit(task);
-              setTask("");
-              onClose();
-            }
-          }}
-          className="p-4"
-        >
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
             value={task}
             onChange={(e) => setTask(e.target.value)}
-            placeholder="Enter your task..."
-            className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/50 mb-4 text-white placeholder-gray-400"
+            placeholder={`What ${defaultImportant ? 'important task' : 'task'} would you like to add?`}
+            className="w-full p-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
             autoFocus
           />
+          
           <div className="flex justify-end gap-3">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 text-sm text-gray-300 hover:bg-white/10 rounded-lg transition-colors"
+              onClick={handleClose}
+              className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2.5 text-sm bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
+              disabled={!task.trim()}
+              className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Add Task
             </button>

@@ -8,6 +8,23 @@ import { Menu, X } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 
 export default function TodoPage() {
+
+  let userName = "User";
+  try {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user.name && user.name.trim()) {
+        userName = user.name;
+      } else if (user.full_name && user.full_name.trim()) {
+        userName = user.full_name;
+      } else if (user.email) {
+        userName = user.email.split("@")[0];
+      }
+    }
+  } catch (err) {
+      console.error(err);
+  }
   
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +32,7 @@ export default function TodoPage() {
   const [activeTab, setActiveTab] = useState<"important" | "general">("general");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [modalForImportant, setModalForImportant] = useState(false);
 
   useEffect(() => {
     fetchTodos();
@@ -88,6 +106,11 @@ export default function TodoPage() {
   const importantTodos = todos.filter((todo) => todo.important);
   const regularTodos = todos.filter((todo) => !todo.important);
   const displayedTodos = activeTab === "important" ? importantTodos : regularTodos;
+  
+  // Check if there are NO todos at all (both important and general)
+  const hasNoTodosAtAll = todos.length === 0;
+  // Check if current tab has no todos
+  const currentTabEmpty = displayedTodos.length === 0;
 
   if (loading) {
     return (
@@ -125,7 +148,7 @@ export default function TodoPage() {
       <main className="px-3 sm:px-4 py-4 sm:py-6">
         {/* Title */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-8 sm:mb-12 md:mb-16 mt-4 sm:mt-6 md:mt-8">
-          <span className="text-violet-400 block sm:inline">Your</span>
+          <span className="text-violet-400 block sm:inline">{userName}'s</span>
           <span className="block sm:inline sm:ml-3">Todo List</span>
         </h1>
 
@@ -151,9 +174,10 @@ export default function TodoPage() {
           />
 
           <div className="space-y-3 sm:space-y-4 mt-4">
-            {displayedTodos.length === 0 ? (
+            {hasNoTodosAtAll ? (
+              // Show "create first task" only when there are NO tasks at all
               <div className="text-center text-gray-400 py-8">
-                <p className="mb-4">No {activeTab} tasks found.</p>
+                <p className="mb-4">No tasks found.</p>
                 <button
                   onClick={() => setIsModalOpen(true)}
                   className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
@@ -161,7 +185,22 @@ export default function TodoPage() {
                   Create your first task
                 </button>
               </div>
+            ) : currentTabEmpty ? (
+              // Show different message when current tab is empty but other tasks exist
+              <div className="text-center text-gray-400 py-8">
+                <p className="mb-4">
+                  No {activeTab} tasks yet.
+                  {activeTab === "important" ? " Mark tasks as important to see them here." : ""}
+                </p>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
+                >
+                  Add {activeTab} task
+                </button>
+              </div>
             ) : (
+              // Show the tasks for current tab
               displayedTodos.map((todo) => (
                 <TodoItem
                   key={todo._id}
@@ -178,8 +217,12 @@ export default function TodoPage() {
 
       <CreateTaskModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setModalForImportant(false);
+        }}
         onSubmit={handleCreateTodo}
+        defaultImportant={modalForImportant}
       />
     </div>
   );
