@@ -1,0 +1,5 @@
+{
+  "name": "TaskFlow",
+  "description": "A comprehensive to-do list application featuring a marketing landing page, authentication screens, and a fully functional dashboard with task management.",
+  "requestFramePermissions": []
+}
