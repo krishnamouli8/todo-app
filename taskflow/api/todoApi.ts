@@ -50,7 +50,7 @@ export const todoApi = {
     }
   },
 
-  async createTodo(body: string, makeImportant?: boolean) {
+  async createTodo(body: string, category?: string, dueDate?: string, makeImportant?: boolean) {
     try {
       const response = await fetch(`${API_BASE_URL}/todos`, {
         method: 'POST',
@@ -58,7 +58,9 @@ export const todoApi = {
         body: JSON.stringify({ 
           body, 
           completed: false, 
-          important: makeImportant || false 
+          important: makeImportant || false,
+          category: category || '',
+          due_date: dueDate || null
         }),
       });
 
@@ -81,6 +83,7 @@ export const todoApi = {
       throw new Error('Failed to create todo');
     }
   },
+
 
   async toggleTodo(id: string, completed: boolean) {
     try {
@@ -331,5 +334,106 @@ export const todoApi = {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     return true;
+  },
+
+  // Get daily stats for dashboard
+  async getDailyStats() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/stats/daily`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        throw new Error('Authentication required');
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching daily stats:', error);
+      throw new Error('Failed to fetch daily stats');
+    }
+  },
+
+  // Get achievements
+  async getAchievements() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/stats/achievements`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        throw new Error('Authentication required');
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching achievements:', error);
+      throw new Error('Failed to fetch achievements');
+    }
+  },
+
+  // Get category stats
+  async getCategoryStats() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/stats/categories`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        throw new Error('Authentication required');
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching category stats:', error);
+      throw new Error('Failed to fetch category stats');
+    }
+  },
+
+  // Clear all completed tasks
+  async clearCompletedTodos() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/todos/completed/clear`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        throw new Error('Authentication required');
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error clearing completed todos:', error);
+      throw new Error('Failed to clear completed todos');
+    }
   }
 };

@@ -90,12 +90,19 @@ func main() {
 
 	// Protected routes
 	app.Use("/api/todos", middleware.JWTMiddleware())
+	app.Use("/api/stats", middleware.JWTMiddleware())
 
 	app.Get("/api/todos", handlers.GetTodos)
 	app.Post("/api/todos", handlers.CreateTodo)
 	app.Patch("/api/todos/:id", handlers.UpdateTodo)
 	app.Patch("/api/todos/:id/important", handlers.ToggleImportant)
 	app.Delete("/api/todos/:id", handlers.DeleteTodo)
+	app.Delete("/api/todos/completed/clear", handlers.ClearCompleted)
+
+	// Statistics routes
+	app.Get("/api/stats/daily", handlers.GetDailyStats)
+	app.Get("/api/stats/achievements", handlers.GetAchievements)
+	app.Get("/api/stats/categories", handlers.GetCategoryStats)
 
 	// Logout route (protected)
 	app.Post("/api/logout", middleware.JWTMiddleware(), handlers.Logout)

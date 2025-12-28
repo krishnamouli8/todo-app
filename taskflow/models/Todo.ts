@@ -13,6 +13,9 @@ interface Todo {
 	updated_at?: string;
 	completed_at?: string;
 	tagColor?: string; // Adding camelCase version for frontend use
+	category?: string;
+	dueDate?: string;
 }
+
 
 export default Todo;

@@ -97,6 +97,37 @@ func GetTodos(c *fiber.Ctx) error {
 		filter["body"] = bson.M{"$regex": search, "$options": "i"}
 	}
 
+	// Add category filter if provided
+	if category := c.Query("category"); category != "" {
+		filter["category"] = category
+	}
+
+	// Add filter for "My Day" (tasks created today or due today)
+	if myDay := c.Query("myDay"); myDay == "true" {
+		now := time.Now()
+		startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		endOfDay := startOfDay.Add(24 * time.Hour)
+
+		todayDateStr := startOfDay.Format("2006-01-02")
+
+		filter["$or"] = []bson.M{
+			{
+				"created_at": bson.M{
+					"$gte": startOfDay,
+					"$lt":  endOfDay,
+				},
+			},
+			{
+				"due_date": todayDateStr,
+			},
+		}
+	}
+
+	// Add filter for "Planned" (tasks with due dates)
+	if planned := c.Query("planned"); planned == "true" {
+		filter["due_date"] = bson.M{"$ne": "", "$exists": true}
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -328,4 +359,203 @@ func DeleteTodo(c *fiber.Ctx) error {
 	utils.LogInfo("DeleteTodo", fmt.Sprintf("Deleted todo %s for user %s", id, userID.Hex()))
 
 	return c.Status(200).JSON(fiber.Map{"message": "Todo deleted successfully"})
+}
+
+// ClearCompleted deletes all completed todos for a user
+func ClearCompleted(c *fiber.Ctx) error {
+	userID, err := getUserIDFromToken(c)
+	if err != nil {
+		utils.LogError("ClearCompleted", "Failed to get user ID from token", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Delete all completed todos that belong to the authenticated user
+	filter := bson.M{"user_id": userID, "completed": true}
+
+	result, err := todoCollection.DeleteMany(ctx, filter)
+	if err != nil {
+		utils.LogError("ClearCompleted", "Failed to delete completed todos", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to clear completed todos"})
+	}
+
+	utils.LogInfo("ClearCompleted", fmt.Sprintf("Deleted %d completed todos for user %s", result.DeletedCount, userID.Hex()))
+
+	return c.JSON(fiber.Map{
+		"message": "Completed todos cleared successfully",
+		"count":   result.DeletedCount,
+	})
+}
+
+// GetDailyStats returns statistics for daily goal progress
+func GetDailyStats(c *fiber.Ctx) error {
+	userID, err := getUserIDFromToken(c)
+	if err != nil {
+		utils.LogError("GetDailyStats", "Failed to get user ID from token", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	now := time.Now()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	// Filter for tasks created or due today
+	filter := bson.M{
+		"user_id": userID,
+		"$or": []bson.M{
+			{
+				"created_at": bson.M{
+					"$gte": startOfDay,
+					"$lt":  endOfDay,
+				},
+			},
+			{
+				"due_date": bson.M{
+					"$gte": startOfDay,
+					"$lt":  endOfDay,
+				},
+			},
+		},
+	}
+
+	// Get total tasks for today
+	total, err := todoCollection.CountDocuments(ctx, filter)
+	if err != nil {
+		utils.LogError("GetDailyStats", "Failed to count total tasks", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch stats"})
+	}
+
+	// Get completed tasks for today
+	filter["completed"] = true
+	completed, err := todoCollection.CountDocuments(ctx, filter)
+	if err != nil {
+		utils.LogError("GetDailyStats", "Failed to count completed tasks", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch stats"})
+	}
+
+	// Calculate percentage
+	percentage := 0
+	if total > 0 {
+		percentage = int((float64(completed) / float64(total)) * 100)
+	}
+
+	return c.JSON(fiber.Map{
+		"total":      total,
+		"completed":  completed,
+		"percentage": percentage,
+	})
+}
+
+// GetAchievements returns user achievements
+func GetAchievements(c *fiber.Ctx) error {
+	userID, err := getUserIDFromToken(c)
+	if err != nil {
+		utils.LogError("GetAchievements", "Failed to get user ID from token", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Count total completed tasks
+	totalCompleted, err := todoCollection.CountDocuments(ctx, bson.M{
+		"user_id":   userID,
+		"completed": true,
+	})
+	if err != nil {
+		utils.LogError("GetAchievements", "Failed to count completed tasks", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch achievements"})
+	}
+
+	// Calculate streak (consecutive days with at least one completed task)
+	streak := 0
+	currentDate := time.Now()
+
+	for i := 0; i < 365; i++ { // Check up to a year
+		startOfDay := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 0, 0, 0, 0, currentDate.Location())
+		endOfDay := startOfDay.Add(24 * time.Hour)
+
+		count, err := todoCollection.CountDocuments(ctx, bson.M{
+			"user_id":   userID,
+			"completed": true,
+			"completed_at": bson.M{
+				"$gte": startOfDay,
+				"$lt":  endOfDay,
+			},
+		})
+
+		if err != nil || count == 0 {
+			break
+		}
+
+		streak++
+		currentDate = currentDate.Add(-24 * time.Hour)
+	}
+
+	achievements := []fiber.Map{
+		{
+			"id":          "task_master",
+			"name":        "Task Master",
+			"icon":        "https://lh3.googleusercontent.com/aida-public/AB6AXuCcUkbqNmfwBqcxlccmR0sFJBrhlbkaYiJFtXSBEpz4VhX5mzGUazqS1WdevKPPXMQjMeebMkyzgtqt787X_RWYJRTe1-3_cDaXkpwUefFbBe1ENDnKe-053l3SBtIRL6J9zkhOjrZWhifZvicm5fvv5irCVrWP6lzCo6_ClQnh2oHJX8M1GBNKP8UVs4i2aXss0wsHat5iY8FjndGGZf7mbskjOwtcUV1o_cw_Kwl4LD5Vz42KiXwtbA_XdNh9MpjMzVgMubQ99Qc",
+			"description": fmt.Sprintf("%d tasks done", totalCompleted),
+			"unlocked":    totalCompleted >= 50,
+			"progress":    totalCompleted,
+			"goal":        50,
+		},
+		{
+			"id":          "on_fire",
+			"name":        "On Fire",
+			"icon":        "https://lh3.googleusercontent.com/aida-public/AB6AXuAbPDnj1hx4Y2GYAMtEp4Psx0lBnHzvcmU58_h-nNMd6AUX6vAKtjuoNn7ppFkmLwl3YzSdabnFcRRdd-NcOhIQLPkmRDeJs58BRkpMax4y8XoVBjiykMUPvJh0_z-ZEfakxnYhuIyLiDjhKlwvI5y__cIGVbQy6jc9IEYRvr-5D_yTm4QLhcVmzOK34mpxRBXEEOY1YOH5WhXTZUjzXU4v1YZemiz6slYHLQTTN071UfL2lWRLnZHPM31daluHwB0Ok8mFY3BPlkg",
+			"description": fmt.Sprintf("%d day streak", streak),
+			"unlocked":    streak >= 7,
+			"progress":    streak,
+			"goal":        7,
+		},
+	}
+
+	return c.JSON(fiber.Map{
+		"achievements":    achievements,
+		"total_completed": totalCompleted,
+		"current_streak":  streak,
+	})
+}
+
+// GetCategoryStats returns task counts grouped by category
+func GetCategoryStats(c *fiber.Ctx) error {
+	userID, err := getUserIDFromToken(c)
+	if err != nil {
+		utils.LogError("GetCategoryStats", "Failed to get user ID from token", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Define default categories
+	categories := []string{"Design Work", "Groceries", "Personal"}
+	categoryCounts := make(map[string]int64)
+
+	for _, category := range categories {
+		count, err := todoCollection.CountDocuments(ctx, bson.M{
+			"user_id":   userID,
+			"category":  category,
+			"completed": false, // Only count incomplete tasks
+		})
+
+		if err != nil {
+			utils.LogError("GetCategoryStats", fmt.Sprintf("Failed to count category %s", category), err)
+			continue
+		}
+
+		categoryCounts[category] = count
+	}
+
+	return c.JSON(fiber.Map{
+		"categories": categoryCounts,
+	})
 }

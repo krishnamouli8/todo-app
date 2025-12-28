@@ -12,6 +12,8 @@ type Todo struct {
 	Completed   bool               `json:"completed" bson:"completed"`
 	Important   bool               `json:"important" bson:"important"`
 	Body        string             `json:"body" bson:"body" validate:"required,min=1,max=500"`
+	Category    string             `json:"category,omitempty" bson:"category,omitempty"`
+	DueDate     string             `json:"due_date,omitempty" bson:"due_date,omitempty"`
 	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
 	CompletedAt *time.Time         `json:"completed_at,omitempty" bson:"completed_at,omitempty"`
